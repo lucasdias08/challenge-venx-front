@@ -9,6 +9,8 @@
     "@testing-library/user-event": "^12.1.10",
     "axios": "^0.21.1",
     "bootstrap": "4.6.0",
+    "cypress": "^8.5.0",
+    "dotenv": "^10.0.0",
     "firebase": "^8.8.1",
     "gh-pages": "^3.2.3",
     "rc-tabs": "^11.10.1",
@@ -21,6 +23,9 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
+    "cypress": "cypress run",
+    "cypress:chrome": "cypress run -b chrome",
+    "cypress:open": "cypress open",
     "start": "react-scripts start",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",

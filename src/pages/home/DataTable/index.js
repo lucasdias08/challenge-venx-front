@@ -1,24 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function DataTable(props){
- 
-    const [first_name] = useState(props.first_name);
-    const [last_name] = useState(props.last_name);
+import { Button } from 'react-bootstrap';
+import { FaEye } from 'react-icons/fa';
 
-    const [color, setColor] = useState('text-dark');
+import ModalViewUser from '../ModalViewUser';
 
-    useEffect(() => {
-      if(first_name === 'null' || last_name === 'null'){
-        setColor('text-danger')
-      }
-    }, [])
+export default function DataTable(props) {
 
-    return(
-        <tr>
-          <td className={color} >{first_name === 'null' || last_name === 'null' ? 'Não retornado/existente' : first_name+ ' ' +last_name}</td>
-          <td>{props.email}</td>
-        </tr>
+  const [showEditUser, setShowEditUser] = useState(false);
+
+  return (
+    <tr>
+      <td>{props.name}</td>
+      <td>{props.genre}</td>
+      <td>{props.birth}</td>
+      <td>
+        <div className="d-flex flex-row justify-content-center w-100">
+          <Button
+            className="m-1 text-white w-150"
+            variant="primary"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Editar"
+            onClick={() => setShowEditUser(true)}>
+            <FaEye />
+          </Button>
+
+          {showEditUser && 
+            <ModalViewUser
+              setShowEditUser={setShowEditUser}
+              {...props}
+            />
+          }
+        </div>
+      </td>
+    </tr>
   );
 };
 /*

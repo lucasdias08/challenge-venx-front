@@ -1,139 +1,184 @@
 import React, { useState, useEffect } from 'react';
 
-import { InputGroup, FormControl, Table, Card, Button, Tab, Tabs } from 'react-bootstrap';
-import { FaSearch, FaTimesCircle } from 'react-icons/fa';
+import { InputGroup, FormControl, Form, Table, Card, Button } from 'react-bootstrap';
+import { FaSpinner } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import DataTable from './DataTable';
-import ModalProcess from './Modal';
-
+    
 import axios from 'axios';
 
 export default function Home() {
 
-    const [keyword, setKeyword] = useState('');
-    const [showScrap, setShowScrap] = useState(false);
-
-    const [showFailedEmails, setShowFailedEmails] = useState(false);
-
+    const [valueSearch, setValueSearch] = useState('');
     const [results, setResults] = useState([]);
+    const [resultsApresentation, setResultsApresentations] = useState([]);
 
-    function getResults(keyword) {
-        const BASE_URL = 'http://localhost:8080/' + keyword;
+    function moreUsers() {
+        const limit = results.length + 50;
+        axios.get('http://localhost:8080/users/' + limit, {
+            headers: {
+                'api-key': '202217'
+            }
+        }).then(data => {
+            //alert(JSON.stringify(data))
+            setResults(data.data.user_list);
+            setResultsApresentations(data.data.user_list);
 
-        return BASE_URL;
+            document.querySelector("#All").click();
+        }).catch(err => {
+            alert(JSON.stringify(err));
+        });
     }
 
-    function clear() {
-        setResults([]);
-        setKeyword('');
+    function apresentationByFilter(value) {
+        setValueSearch(value);
+        setResultsApresentations([]);
+
+        if (value === '') {
+            setResultsApresentations(results)
+        } else {
+            var array_aux = [];
+            results.map((item) => {
+                var genre = item.genre_user;
+                var nationality = item.nationality_user;
+                (JSON.stringify(genre).toLowerCase() === JSON.stringify(value).toLowerCase() || JSON.stringify(nationality).toLowerCase() === JSON.stringify(value).toLowerCase()) && array_aux.push(item)
+                return true;
+            })
+
+            setResultsApresentations(array_aux);
+        }
     }
 
-    function runScrap() {
-        if (keyword) {
-            setShowScrap(true);
+    function apresentationByGenre(genre) {
+        setResultsApresentations([]);
 
-            axios.get(getResults(keyword)).then((response) => {
+        if (genre === 'All') {
+            setResultsApresentations(results)
+        } else {
+            var array_aux = [];
+            results.map((item) => {
+                item.genre_user === genre && array_aux.push(item);
+                return true;
+            })
 
-                console.log(JSON.stringify(response));
-
-                setResults(response.data);
-
-                setShowScrap(false);
-
-            }).catch((error) => {
-                console.log("BUGOU: " + error);
-
-                setShowScrap(false);
-                setShowFailedEmails(true);
-            });
-        } 
+            setResultsApresentations(array_aux);
+        }
     }
 
     useEffect(() => {
-        if (results.length > 0) {
-            console.log(JSON.stringify(results));
-            //console.log(domains);
-            //alert('entrou');
+        async function getData() {
+            axios.get('http://localhost:8080/users', {
+                headers: {
+                    'api-key': '202217'
+                }
+            }).then(data => {
+                //alert(JSON.stringify(data))
+                setResults(data.data.user_list);
+                setResultsApresentations(data.data.user_list);
+            }).catch(err => {
+                alert(JSON.stringify(err));
+            });
         }
-    }, [results]);
+
+        getData();
+    }, []);
 
     return (
-        <div className='d-flex container-fluid flex-column justify-content-center align-items-center bg-light h-25 p-2  '>
-            <Card className="w-75 h-100">
+        <div className='d-flex container-fluid flex-column justify-content-center align-items-center h-100'>
+            <Card className="w-75 h-100 m-5">
                 <Card.Header className="d-flex flex-column justify-content-center align-items-center">
-                    <h2 className="text-underline"><i>Buscar por palavra-chave</i></h2>
+                    <h2 className="text-underline"><i>Users registeders</i></h2>
                     <hr></hr>
                     <div className="w-100">
                         <InputGroup className="mb-3 d-flex">
                             <div className="d-flex flex-row justify-content-center align-items-center col">
                                 <FormControl
                                     className="w-75"
-                                    placeholder="Palavra-chave"
-                                    aria-label="Palavra-chave"
+                                    placeholder="Search by name/nationality"
+                                    aria-label="Search by name/nationality"
                                     aria-describedby="basic-addon1"
-                                    value={keyword}
-                                    onChange={(e) => setKeyword(e.target.value)}
-                                    onKeyDown={(event) => {
-                                        if (event.keyCode === 13) {
-                                            runScrap();
-                                        }
+                                    value={valueSearch}
+                                    onChange={(event) => {
+                                        apresentationByFilter(event.target.value);
                                     }}
                                 />
 
-                                <Button
-                                    className="ml-3 text-white"
-                                    variant="success"
-                                    data-toggle="tooltip"
-                                    data-placement="top"
-                                    title="Buscar resultados"
-                                    onClick={() => runScrap()}>
-                                    <FaSearch />
-                                </Button>
-                                <Button
-                                    className="ml-3 text-white"
-                                    variant="danger"
-                                    data-toggle="tooltip"
-                                    data-placement="top"
-                                    title="Limpar campos"
-                                    onClick={() => clear()}>
-                                    <FaTimesCircle />
-                                </Button>
-
                             </div>
                         </InputGroup>
+                        <div className="container-fluid ml-5">
+                            <Form.Check
+                                inline
+                                label="All"
+                                name="genre_option"
+                                type={"radio"}
+                                defaultChecked={true}
+                                onClick={(event) => apresentationByGenre(event.target.id)}
+                                id={"All"}
+                            />
+                            <Form.Check
+                                inline
+                                label="Female"
+                                name="genre_option"
+                                type={"radio"}
+                                onClick={(event) => apresentationByGenre(event.target.id)}
+                                id={"female"}
+                            />
+                            <Form.Check
+                                inline
+                                label="Male"
+                                name="genre_option"
+                                type={"radio"}
+                                onClick={(event) => apresentationByGenre(event.target.id)}
+                                id={"male"}
+                            />
+                        </div>
                     </div>
-                    {showScrap && <ModalProcess title="Buscando os domínios. Por favor, aguarde." />}
-                    {showFailedEmails && <ModalProcess title="Houve uma falha no retorno dos emails. Reinicie tudo e tente novamente." error={true} />}
                 </Card.Header>
-                <Card.Body>
-                    <Tabs
-                        variant="tabs"
-                        className="flex-nowrap overflow-auto"
-                    >
-                        {results ? results.map((item, index) =>
-                        (
-                            <Tab 
-                                eventKey={index} 
-                                title={item.domain}
-                                className="flex-nowrap"
-                            >
-                                <Table className="text-center mt-3 pb-5" striped bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>Nome</th>
-                                            <th>E-mail</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {item && item.emails.map((e) => <DataTable first_name={`${e.first_name}`} last_name={`${e.last_name}`} email={e.value} />)}
-                                    </tbody>
 
-                                </Table>
-                            </Tab>
+                <Table style={{ borderStyle: "none" }} className="text-center pb-5" striped bordered hover>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Gender</th>
+                            <th>Birth</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {resultsApresentation ? resultsApresentation.map((item, index) =>
+                        (
+                            <DataTable
+                                id_user={`${item.id}`}
+                                image_user={`${item.path_image_user}`}
+                                name={`${item.name_user}`}
+                                email={`${item.email_user}`}
+                                genre={item.genre_user}
+                                birth={item.birth_user}
+                                phone={item.phone_user}
+                                nationality={item.nationality_user}
+                                city_user_address={item.city_user_address}
+                                street_user_address={item.street_user_address}
+                                number_home_user_address={item.number_home_user_address}
+                                state_user_address={item.state_user_address}
+                            />
                         )) : null}
-                    </Tabs>
-                </Card.Body>
+                    </tbody>
+                </Table>
+                <div className="d-flex justify-content-center w-50 align-self-center">
+                    <Button
+                        className="mb-5 text-white w-25"
+                        variant="primary"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Carregar mais 50 usuários"
+                        onClick={() => moreUsers()}
+                    >
+                        <FaSpinner className="mr-3" size={25} />
+                        Mais
+                    </Button>
+                </div>
+
             </Card>
         </div >
     );
